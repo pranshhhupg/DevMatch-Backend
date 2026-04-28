@@ -15,6 +15,7 @@ const requestRouter = require('./routes/requests');
 const userRouter = require('./routes/user');
 
 const initializeSocket = require('./utils/socket');
+const chatRouter = require('./routes/chat');
 
 //using express.json() as middleware to convert the incoming data type into JSON
 app.use(cors({
@@ -30,6 +31,7 @@ app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
 app.use("/", userRouter);
+app.use("/", chatRouter);
 
 const server = http.createServer(app);
 initializeSocket(server);

@@ -157,3 +157,15 @@
 - WE NEED TO ONLY CONFIGURE NGINX ONCE
 
 # BUILDING LIVE CHAT FEATURE USING WEBSOCKETS (SOCKET.IO)
+-Build the UI for a chat window/on/chat/:targetUserId
+-setup socket.io in backend
+-npm i socket.io
+-Setup frontend npm i socket.io-client
+-Initialise the chat
+-createSocketConnection()
+-Listen to events
+-Homework : improve the UI
+-Homework : Fix security bug - auth in web sockets
+-Homework : Fix security bug -If i'm not friend , then I should not be able to send messages
+-Homework : Show green symbol when online
+-Homework : Limit messages fetching from database.
