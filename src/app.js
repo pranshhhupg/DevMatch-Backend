@@ -1,5 +1,9 @@
 const cookieParser = require('cookie-parser');
-require('dotenv').config()
+const path = require("path");
+
+require("dotenv").config({
+  path: path.resolve(__dirname, "../.env"),
+});
 //to use express into our project
 const express = require('express');
 //connect to database
