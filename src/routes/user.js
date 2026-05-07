@@ -1,134 +1,295 @@
-const express = require('express');
-const { userAuth } = require('../middlewares/auth');
-const ConnectionRequest = require('../models/connectionRequests');
-const User = require('../models/user');
+const express = require("express");
+const { userAuth } = require("../middlewares/auth");
+const ConnectionRequest = require("../models/connectionRequests");
+const User = require("../models/user");
+const { calculateMatchScore } = require("../utils/feedScore");
+
 const userRouter = express.Router();
 
-const USER_DATA =  "firstName lastName age gender photoUrl about hobbies";
+// ======================================================
+// Fields safe to send to frontend
+// ======================================================
 
-userRouter.get("/user/requests", userAuth, async (req,res)=>{
-    try{
+const USER_DATA = `
+firstName
+lastName
+age
+gender
+photoUrl
+about
+hobbies
+skills
+lookingFor
+goals
+availability
+experienceLevel
+timezone
+hackathonInterest
+startupInterest
+learningGoals
+projectIdeas
+`;
+
+// ======================================================
+// GET USER REQUESTS RECEIVED
+// ======================================================
+
+userRouter.get("/user/requests", userAuth, async (req, res) => {
+    try {
         const loggedInUser = req.user;
 
         const findRequests = await ConnectionRequest.find({
-            toUserId : loggedInUser._id,
-            status : "interested",    
+            toUserId: loggedInUser._id,
+            status: "interested",
         }).populate("fromUserId", USER_DATA);
 
-        if(!findRequests){
-            res.send("No Request Found!");
-        }
-        
-        res.json({message : "Requests Fetched Successfully for "+ loggedInUser.firstName, 
-        data : findRequests
+        res.json({
+            message: "Requests fetched successfully for " + loggedInUser.firstName,
+            data: findRequests,
         });
-    }
 
-    catch(err){
-        res.status(400).json({message : "Error occured " + err.message});
+    } catch (err) {
+        res.status(400).json({
+            message: "Error occured " + err.message,
+        });
     }
 });
 
-userRouter.get("/user/connections", userAuth, async (req,res)=>{
-    try{
+// ======================================================
+// GET CONNECTIONS
+// ======================================================
+
+userRouter.get("/user/connections", userAuth, async (req, res) => {
+    try {
         const loggedInUser = req.user;
-    
+
         const connections = await ConnectionRequest.find({
-            $or : [
-                {fromUserId : loggedInUser._id, status : "accepted"},
-                {toUserId : loggedInUser._id, status : "accepted"}
-            ]
-        }).populate("fromUserId", USER_DATA)
-        .populate("toUserId", USER_DATA);
-    
-        if(!connections){
-            req.send({message : "No connection Found"});
-        }
-        
-        const data = connections.map((row)=>{
-            if(row.toUserId._id.toString()===loggedInUser._id.toString()) return row.fromUserId;
-            return row.toUserId;
+            $or: [
+                {
+                    fromUserId: loggedInUser._id,
+                    status: "accepted",
+                },
+                {
+                    toUserId: loggedInUser._id,
+                    status: "accepted",
+                },
+            ],
         })
+        .populate("fromUserId", USER_DATA)
+        .populate("toUserId", USER_DATA);
 
-        res.send({message : "Showing Established Connections",
-            data : data
+        const data = connections.map((row) => {
+            if (
+                row.toUserId._id.toString() ===
+                loggedInUser._id.toString()
+            ) {
+                return row.fromUserId;
+            }
+
+            return row.toUserId;
+        });
+
+        res.json({
+            message: "Showing established connections",
+            data,
+        });
+
+    } catch (err) {
+        res.status(400).json({
+            message: "Error occured " + err.message,
         });
     }
-    catch(err){
-        res.status(404).send("Error occured " + err.message);
-    }
-    
 });
 
-userRouter.get("/user/feed", userAuth, async(req,res)=>{
-    try{
-        //THOUGHT PROCESS
-        //I dont want users in feed which are:
-        //1. To whom i have already sent the request like interested/rejected
-        //2. My connections
-        //3. Users from whom i have received the requests
+// ======================================================
+// SMART FEED
+// ======================================================
 
-        //pagination
-        const page = (req.query.page) || 1;
-        let limit = (req.query.limit) || 10;
-        limit = limit > 20 ? 20 : limit;
-        const skip = (page-1)*limit;
-
+userRouter.get("/user/feed", userAuth, async (req, res) => {
+    try {
         const loggedInUser = req.user;
 
-        const usersToRemoveFromFeed = await ConnectionRequest.find({
-            $or : [
-                {fromUserId : loggedInUser._id},
-                {toUserId : loggedInUser._id},
-            ]
+        // ============================================
+        // Pagination
+        // ============================================
+
+        const page = Math.max(
+            parseInt(req.query.page) || 1,
+            1
+        );
+
+        const limit = Math.min(
+            parseInt(req.query.limit) || 10,
+            50
+        );
+
+        const skip = (page - 1) * limit;
+
+        // ============================================
+        // Find users already interacted with
+        // ============================================
+
+        const interactions = await ConnectionRequest.find({
+            $or: [
+                { fromUserId: loggedInUser._id },
+                { toUserId: loggedInUser._id },
+            ],
+        })
+        .select("fromUserId toUserId")
+        .lean();
+
+        // ============================================
+        // Exclude interacted users + self
+        // ============================================
+
+        const excludedUsers = new Set([
+            loggedInUser._id.toString(),
+        ]);
+
+        interactions.forEach((interaction) => {
+            excludedUsers.add(
+                interaction.fromUserId.toString()
+            );
+
+            excludedUsers.add(
+                interaction.toUserId.toString()
+            );
         });
 
-        const hideUsersFromFeed = new Set();
-
-        usersToRemoveFromFeed.forEach((req)=>{
-            hideUsersFromFeed.add(req.fromUserId.toString());
-            hideUsersFromFeed.add(req.toUserId.toString());
-        });
+        // ============================================
+        // Fetch remaining users
+        // ============================================
 
         const users = await User.find({
-            $and : [
-                {_id : {$nin : Array.from(hideUsersFromFeed)} },
-                {_id : {$ne : loggedInUser._id}},
-            ]
-        }).select(USER_DATA).skip(skip).limit(limit);
+            _id: {
+                $nin: Array.from(excludedUsers),
+            },
+        })
+        .select(USER_DATA)
+        .lean();
 
-        res.json({message : "Showing the feed for " + loggedInUser.firstName,
-            data : users
-        });
+        // ============================================
+        // If no users found
+        // ============================================
 
-    }
-    catch(err){
-        res.status(400).send("error message " + err.message);
-    }
-    
-});
-
-userRouter.get("/user/request/all", userAuth, async (req,res)=>{
-    try{
-         const loggedInUser = req.user;
-
-        const user = await ConnectionRequest.find({
-            fromUserId : loggedInUser._id,
-            status: { $in: ["interested", "rejected", "accepted"] }
-        }).populate("toUserId", USER_DATA);
-        
-        if(!user){
-            res.send("No user found!");
+        if (!users.length) {
+            return res.json({
+                message: "No users found",
+                data: [],
+                total: 0,
+                totalPages: 0,
+                page,
+            });
         }
 
-        res.json({message : "User fetched Successfully for " + loggedInUser.firstName,
-            data : user
+        // ============================================
+        // Convert logged in user to plain object
+        // ============================================
+
+        const me = loggedInUser.toObject
+            ? loggedInUser.toObject()
+            : loggedInUser;
+
+        // ============================================
+        // Calculate score for every user
+        // ============================================
+
+        const scoredUsers = users.map((user) => {
+            const {
+                score,
+                reasons,
+                breakdown,
+                rawBreakdown,
+            } = calculateMatchScore(me, user);
+
+            return {
+                user,
+                matchScore: score,
+                matchReasons: reasons,
+                matchBreakdown: breakdown,
+                rawBreakdown,
+            };
         });
 
-    }catch(err){
-        console.log("Error occured : " + err.message);
-    }
+        // ============================================
+        // Sort by highest score
+        // ============================================
 
+        scoredUsers.sort(
+            (a, b) => b.matchScore - a.matchScore
+        );
+
+        // ============================================
+        // Pagination AFTER sorting
+        // ============================================
+
+        const totalUsers = scoredUsers.length;
+
+        const paginatedUsers = scoredUsers.slice(
+            skip,
+            skip + limit
+        );
+
+        // ============================================
+        // Final response
+        // ============================================
+
+        res.json({
+            message:
+                "Showing intelligent feed for " +
+                loggedInUser.firstName,
+            page,
+            limit,
+            totalUsers,
+            totalPages: Math.ceil(
+                totalUsers / limit
+            ),
+            data: paginatedUsers,
+        });
+
+    } catch (err) {
+        console.log("Feed Error : ", err.message);
+
+        res.status(500).json({
+            message: "Server Error",
+        });
+    }
+});
+
+// ======================================================
+// ALL SENT REQUESTS
+// ======================================================
+
+userRouter.get("/user/request/all", userAuth, async (req, res) => {
+    try {
+        const loggedInUser = req.user;
+
+        const user = await ConnectionRequest.find({
+            fromUserId: loggedInUser._id,
+            status: {
+                $in: [
+                    "interested",
+                    "rejected",
+                    "accepted",
+                ],
+            },
+        })
+        .populate("toUserId", USER_DATA);
+
+        res.json({
+            message:
+                "Users fetched successfully for " +
+                loggedInUser.firstName,
+            data: user,
+        });
+
+    } catch (err) {
+        console.log("Error occured : ", err.message);
+
+        res.status(400).json({
+            message: err.message,
+        });
+    }
 });
 
 module.exports = userRouter;

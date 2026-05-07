@@ -68,10 +68,65 @@ const userSchema = new mongoose.Schema({
         maxLength : 300,
         default : "Hi there! I am using DevTinder"
     },
-    hobbies : {
-        type : [String],
-        default : [""]
-    }
+    skills: {
+        type: [String],
+        default: [],
+        validate(value) {
+          if (value.length > 20) throw new Error("Maximum 20 skills allowed");
+        },
+      },
+  
+      // ── New Matching Fields ───────────────────────────────────
+      lookingFor: {
+        type: [String],
+        enum: [
+          "frontend dev",
+          "backend dev",
+          "ml engineer",
+          "designer",
+          "product manager",
+          "devops",
+          "mobile dev",
+          "any",
+        ],
+        default: ["any"],
+      },
+      goals: {
+        type: [String],
+        enum: [
+          "build a startup",
+          "win hackathons",
+          "learn new tech",
+          "open source",
+          "freelance",
+          "get a job",
+        ],
+        default: [],
+      },
+      availability: {
+        type: String,
+        enum: ["weekends", "evenings", "full-time", "flexible"],
+        default: "flexible",
+      },
+      experienceLevel: {
+        type: String,
+        enum: ["beginner", "intermediate", "advanced"],
+        default: "intermediate",
+      },
+      timezone: {
+        type: String,
+        default: "Asia/Kolkata",
+      },
+      hackathonInterest: { type: Boolean, default: false },
+      startupInterest:   { type: Boolean, default: false },
+      learningGoals: {
+        type: [String],
+        default: [],
+      },
+      projectIdeas: {
+        type: [String],
+        default: [],
+      },
 },
 {
     timestamps : true,
