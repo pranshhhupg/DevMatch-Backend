@@ -292,4 +292,24 @@ userRouter.get("/user/request/all", userAuth, async (req, res) => {
     }
 });
 
+userRouter.get("/user/:id", userAuth, async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id).select(
+        "firstName lastName photoUrl about experienceLevel"
+      );
+  
+      if (!user) {
+        return res.status(404).json({
+          message: "User not found",
+        });
+      }
+  
+      res.json(user);
+    } catch (err) {
+      res.status(500).json({
+        message: err.message,
+      });
+    }
+  });
+
 module.exports = userRouter;

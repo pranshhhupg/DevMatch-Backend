@@ -28,35 +28,43 @@ const opportunitySchema = new mongoose.Schema({
         type: [String],
         default : [],
     },
+    eventType : {
+        type : String,
+        default : "",
+    },
     teamSize: {
         type: Number,
         min: 1,
         max: 100,
     },
-        level: {
+    level: {
         type: String,
         enum: ["beginner", "intermediate", "expert", "any"],
         default: "any",
     },
-        rolesNeeded: {
+    rolesNeeded: {
         type: [String],
         default: [],
     },
-        applyLink: {
+    applyLink: {
         type: String,
         default: "",
         trim: true,
     },
-        isActive: {
+    isActive: {
         type: Boolean,
         default: true,
     },
+    duration : {
+        type: String,
+        default : "",
+    }
 },
     { timestamps: true }
 );
 
 // Compound index for the common filter path
-opportunitySchema.index({ type: 1, location: 1, level: 1, isActive: 1 });
+opportunitySchema.index({ eventType: 1, location: 1, level: 1, isActive: 1 });
 // For profile "my opportunities" lookup
 opportunitySchema.index({ postedBy: 1, createdAt: -1 });
 

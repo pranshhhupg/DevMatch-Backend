@@ -10,11 +10,11 @@ const POSTER_FIELDS = "firstName lastName photoUrl skills experienceLevel";
 collabRouter.post("/collab/opportunity", userAuth, async (req, res) => {
   try {
     const {
-      title, description, type, location,
+      title, description, eventType, location,
       duration, techStack, teamSize, level, rolesNeeded, applyLink,
     } = req.body;
 
-    if (!title?.trim() || !description?.trim() || !type || !location?.trim()) {
+    if (!title?.trim() || !description?.trim() || !eventType || !location?.trim()) {
       return res
         .status(400)
         .json({ message: "Title, description, type, and location are required" });
@@ -24,12 +24,13 @@ collabRouter.post("/collab/opportunity", userAuth, async (req, res) => {
       postedBy:    req.user._id,
       title:       title.trim(),
       description: description.trim(),
-      type,
+      eventType,
       location:    location.trim(),
       duration:    duration?.trim()   || "",
       techStack:   techStack          || [],
       teamSize:    teamSize           || undefined,
       level:       level              || "any",
+      eventType,
       rolesNeeded: rolesNeeded        || [],
       applyLink:   applyLink?.trim()  || "",
     });
@@ -48,13 +49,13 @@ collabRouter.post("/collab/opportunity", userAuth, async (req, res) => {
 // ── GET /collab/opportunities — All, with filters + pagination ────────────────
 collabRouter.get("/collab/opportunities", userAuth, async (req, res) => {
   try {
-    const { type, location, level, techStack } = req.query;
+    const { eventType, location, level, techStack } = req.query;
     const page  = Math.max(parseInt(req.query.page)  || 1, 1);
     const limit = Math.min(parseInt(req.query.limit) || 12, 50);
     const skip  = (page - 1) * limit;
 
     const filter = { isActive: true };
-    if (type) filter.type = type;
+    if (eventType) filter.eventType = eventType;
     if (level && level !== "any") filter.level = level;
     if (location) filter.location = { $regex: location, $options: "i" };
     if (techStack) {
@@ -121,7 +122,7 @@ collabRouter.put("/collab/opportunity/:id", userAuth, async (req, res) => {
       return res.status(403).json({ message: "Not authorized to edit this opportunity" });
 
     const ALLOWED = [
-      "title", "description", "type", "location", "duration",
+      "title", "description", "eventType", "location", "duration",
       "techStack", "teamSize", "level", "rolesNeeded", "applyLink", "isActive",
     ];
     Object.keys(req.body).forEach((key) => {

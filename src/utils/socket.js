@@ -17,7 +17,7 @@ const initializeSocket = (server) => {
             socket.join(roomId);
         });
 
-        socket.on("sendMessage", async ({firstName, lastName, userId, targetUserId, text})=> {
+        socket.on("sendMessage", async ({firstName, lastName, userId, photoUrl, targetUserId, text})=> {
             const roomId = [userId, targetUserId].sort().join("_");
             console.log(firstName +" : "+ text);
 
@@ -42,7 +42,7 @@ const initializeSocket = (server) => {
             catch(err){
                 console.log(err.message);
             }
-            io.to(roomId).emit("messageReceived", {firstName,lastName, text});
+            io.to(roomId).emit("messageReceived", {firstName,lastName,photoUrl, text});
         });
 
         socket.on("disconnect", ()=>{});
