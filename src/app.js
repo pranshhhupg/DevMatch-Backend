@@ -17,7 +17,9 @@ const authRouter = require("./routes/auth");
 const profileRouter = require('./routes/profile');
 const requestRouter = require('./routes/requests');
 const userRouter = require('./routes/user');
-const collabRouter  = require("./routes/collab"); // 
+const collabRouter        = require("./routes/collab");
+const communityRouter     = require("./routes/community");
+const communityPostRouter = require("./routes/communityPost");
 
 const initializeSocket = require('./utils/socket');
 const chatRouter = require('./routes/chat');
@@ -38,6 +40,8 @@ app.use("/", requestRouter);
 app.use("/", userRouter);
 app.use("/", chatRouter);
 app.use("/", collabRouter);
+app.use("/", communityRouter);
+app.use("/", communityPostRouter);
 
 const server = http.createServer(app);
 initializeSocket(server);
@@ -51,4 +55,3 @@ connectDB().then(()=>{
 }).catch(err => {
     console.error("Database cannot be connected!! :" + err.message);
 });
-
