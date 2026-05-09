@@ -20,6 +20,7 @@ const userRouter = require('./routes/user');
 const collabRouter        = require("./routes/collab");
 const communityRouter     = require("./routes/community");
 const communityPostRouter = require("./routes/communityPost");
+const searchRouter        = require("./routes/search");
 
 const initializeSocket = require('./utils/socket');
 const chatRouter = require('./routes/chat');
@@ -37,6 +38,7 @@ app.use(cookieParser());
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
+app.use("/", searchRouter);
 app.use("/", userRouter);
 app.use("/", chatRouter);
 app.use("/", collabRouter);
