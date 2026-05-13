@@ -312,4 +312,42 @@ userRouter.get("/user/:id", userAuth, async (req, res) => {
     }
   });
 
+// ======================================================
+// GET FULL PUBLIC PROFILE OF A DEVELOPER (with opportunities)
+// ======================================================
+
+const Opportunity = require("../models/opportunity");
+
+const PUBLIC_PROFILE_FIELDS =
+  "firstName lastName photoUrl about age gender skills lookingFor goals " +
+  "availability experienceLevel timezone hackathonInterest startupInterest " +
+  "learningGoals projectIdeas";
+
+userRouter.get("/user/:id/profile", userAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select(PUBLIC_PROFILE_FIELDS);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Fetch active opportunities posted by this user
+    const opportunities = await Opportunity.find({
+      postedBy: req.params.id,
+      isActive: true,
+    })
+      .sort({ createdAt: -1 })
+      .select(
+        "title description eventType location duration techStack teamSize level rolesNeeded applyLink createdAt"
+      );
+
+    res.json({
+      message: "Profile fetched successfully",
+      data: { user, opportunities },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = userRouter;
