@@ -21,18 +21,18 @@ collabRouter.post("/collab/opportunity", userAuth, async (req, res) => {
     }
 
     const opportunity = new Opportunity({
-      postedBy:    req.user._id,
-      title:       title.trim(),
+      postedBy: req.user._id,
+      title: title.trim(),
       description: description.trim(),
       eventType,
-      location:    location.trim(),
-      duration:    duration?.trim()   || "",
-      techStack:   techStack          || [],
-      teamSize:    teamSize           || undefined,
-      level:       level              || "any",
+      location: location.trim(),
+      duration:  duration?.trim() || "",
+      techStack: techStack || [],
+      teamSize: teamSize  || undefined,
+      level: level || "any",
       eventType,
-      rolesNeeded: rolesNeeded        || [],
-      applyLink:   applyLink?.trim()  || "",
+      rolesNeeded: rolesNeeded || [],
+      applyLink: applyLink?.trim() || "",
     });
 
     await opportunity.save();
@@ -50,9 +50,9 @@ collabRouter.post("/collab/opportunity", userAuth, async (req, res) => {
 collabRouter.get("/collab/opportunities", userAuth, async (req, res) => {
   try {
     const { eventType, location, level, techStack } = req.query;
-    const page  = Math.max(parseInt(req.query.page)  || 1, 1);
+    const page = Math.max(parseInt(req.query.page)  || 1, 1);
     const limit = Math.min(parseInt(req.query.limit) || 12, 50);
-    const skip  = (page - 1) * limit;
+    const skip = (page - 1) * limit;
 
     const filter = { isActive: true };
     if (eventType) filter.eventType = eventType;

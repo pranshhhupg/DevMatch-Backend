@@ -36,6 +36,11 @@ const communitySchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    // Cloudinary public_id for the banner (used for deletion on re-upload)
+    coverImagePublicId: {
+      type: String,
+      default: null,
+    },
     // Creator – always an admin
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

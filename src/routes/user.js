@@ -6,9 +6,7 @@ const { calculateMatchScore } = require("../utils/feedScore");
 
 const userRouter = express.Router();
 
-// ======================================================
 // Fields safe to send to frontend
-// ======================================================
 
 const USER_DATA = `
 firstName
@@ -30,9 +28,7 @@ learningGoals
 projectIdeas
 `;
 
-// ======================================================
 // GET USER REQUESTS RECEIVED
-// ======================================================
 
 userRouter.get("/user/requests", userAuth, async (req, res) => {
     try {
@@ -55,9 +51,8 @@ userRouter.get("/user/requests", userAuth, async (req, res) => {
     }
 });
 
-// ======================================================
+
 // GET CONNECTIONS
-// ======================================================
 
 userRouter.get("/user/connections", userAuth, async (req, res) => {
     try {
@@ -101,17 +96,13 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
     }
 });
 
-// ======================================================
-// SMART FEED
-// ======================================================
+//SMART FEED
 
 userRouter.get("/user/feed", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
 
-        // ============================================
-        // Pagination
-        // ============================================
+        //pagination
 
         const page = Math.max(
             parseInt(req.query.page) || 1,
@@ -125,9 +116,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
 
         const skip = (page - 1) * limit;
 
-        // ============================================
-        // Find users already interacted with
-        // ============================================
+        //find users already interacted with
 
         const interactions = await ConnectionRequest.find({
             $or: [
@@ -138,9 +127,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
         .select("fromUserId toUserId")
         .lean();
 
-        // ============================================
-        // Exclude interacted users + self
-        // ============================================
+        //exclude interacted user + self
 
         const excludedUsers = new Set([
             loggedInUser._id.toString(),
@@ -156,9 +143,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
             );
         });
 
-        // ============================================
-        // Fetch remaining users
-        // ============================================
+        //fetch remaining users
 
         const users = await User.find({
             _id: {
@@ -168,9 +153,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
         .select(USER_DATA)
         .lean();
 
-        // ============================================
-        // If no users found
-        // ============================================
+       //if no user found
 
         if (!users.length) {
             return res.json({
@@ -182,17 +165,13 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
             });
         }
 
-        // ============================================
         // Convert logged in user to plain object
-        // ============================================
 
         const me = loggedInUser.toObject
             ? loggedInUser.toObject()
             : loggedInUser;
 
-        // ============================================
         // Calculate score for every user
-        // ============================================
 
         const scoredUsers = users.map((user) => {
             const {
@@ -211,17 +190,13 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
             };
         });
 
-        // ============================================
         // Sort by highest score
-        // ============================================
 
         scoredUsers.sort(
             (a, b) => b.matchScore - a.matchScore
         );
 
-        // ============================================
         // Pagination AFTER sorting
-        // ============================================
 
         const totalUsers = scoredUsers.length;
 
@@ -230,9 +205,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
             skip + limit
         );
 
-        // ============================================
         // Final response
-        // ============================================
 
         res.json({
             message:
@@ -256,9 +229,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
     }
 });
 
-// ======================================================
 // ALL SENT REQUESTS
-// ======================================================
 
 userRouter.get("/user/request/all", userAuth, async (req, res) => {
     try {
@@ -312,9 +283,6 @@ userRouter.get("/user/:id", userAuth, async (req, res) => {
     }
   });
 
-// ======================================================
-// GET FULL PUBLIC PROFILE OF A DEVELOPER (with opportunities)
-// ======================================================
 
 const Opportunity = require("../models/opportunity");
 

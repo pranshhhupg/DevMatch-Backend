@@ -63,6 +63,11 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
+    // Cloudinary public_id for the profile photo (used for deletion on re-upload)
+    photoPublicId : {
+        type : String,
+        default : null,
+    },
     about : {
         type : String,
         maxLength : 300,

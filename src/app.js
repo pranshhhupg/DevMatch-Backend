@@ -25,6 +25,8 @@ const searchRouter        = require("./routes/search");
 const initializeSocket = require('./utils/socket');
 const chatRouter = require('./routes/chat');
 const resumeRouter = require('./routes/resumeParser');
+const uploadRouter = require('./routes/upload');
+const bioRouter = require('./routes/bioGenerator');
 
 //using express.json() as middleware to convert the incoming data type into JSON
 app.use(cors({
@@ -46,6 +48,8 @@ app.use("/", collabRouter);
 app.use("/", communityRouter);
 app.use("/", communityPostRouter);
 app.use("/", resumeRouter);
+app.use("/", uploadRouter);
+app.use("/", bioRouter);
 
 const server = http.createServer(app);
 initializeSocket(server);
