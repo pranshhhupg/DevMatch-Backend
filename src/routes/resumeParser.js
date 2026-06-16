@@ -29,8 +29,10 @@ const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
 // ── Enums mirrored from user model ───────────────────────────────────────────
 const VALID_LOOKING_FOR = [
-  "frontend dev", "backend dev", "ml engineer", "designer",
-  "product manager", "devops", "mobile dev", "any",
+  "frontend dev", "backend dev", "full stack", "ml engineer",
+  "ai engineer", "prompt engineer", "data scientist", "data analyst",
+  "designer", "product manager", "devops", "mobile dev", "qa engineer",
+  "blockchain dev", "consultant", "any",
 ];
 const VALID_GOALS = [
   "build a startup", "win hackathons", "learn new tech",
@@ -52,7 +54,7 @@ Return a JSON object matching this exact schema:
   "about": string (max 300 chars — punchy first-person developer bio summarising their background),
   "skills": string[] (max 20 — only real technical skills: languages, frameworks, tools, platforms),
   "experienceLevel": "beginner" | "intermediate" | "advanced",
-  "lookingFor": string[] (subset of: "frontend dev","backend dev","ml engineer","designer","product manager","devops","mobile dev","any"),
+  "lookingFor": string[] (subset of: "frontend dev","backend dev","full stack","ml engineer","ai engineer","prompt engineer","data scientist","data analyst","designer","product manager","devops","mobile dev","qa engineer","blockchain dev","consultant","any"),
   "goals": string[] (subset of: "build a startup","win hackathons","learn new tech","open source","freelance","get a job"),
   "availability": "weekends" | "evenings" | "full-time" | "flexible",
   "hackathonInterest": boolean,

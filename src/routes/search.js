@@ -4,8 +4,10 @@
  * GET /user/search
  *   Query params:
  *     q            – free-text search (name / skill / role / goal)
- *     role         – role filter: frontend | backend | fullstack | ml | devops
- *                                 | mobile | designer | product
+ *     role         – role filter: frontend | backend | fullstack | ml | ai
+ *                                 | prompt | datascientist | dataanalyst
+ *                                 | devops | mobile | designer | product
+ *                                 | qa | blockchain | consultant
  *     availability – availability filter: weekends | evenings | fulltime
  *                                         | flexible | hackathon | startup
  *     page         – page number (default: 1)
