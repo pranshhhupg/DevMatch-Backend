@@ -25,7 +25,7 @@ const searchRouter = express.Router();
 
 // Fields exposed in search results (safe, no sensitive info)
 const SEARCH_FIELDS =
-  "firstName lastName photoUrl about skills role goals " +
+  "firstName lastName photoUrl about skills lookingFor goals " +
   "availability experienceLevel hackathonInterest startupInterest " +
   "learningGoals timezone";
 

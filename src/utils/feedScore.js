@@ -23,6 +23,24 @@ function jaccard(setA, setB) {
 }
 
 /**
+ * roleLabelTrusted — guards against mislabeled `lookingFor` values.
+ *
+ * A user's `lookingFor` is self-reported and can be filled in incorrectly
+ * (e.g. someone writes the role they WANT to find instead of the role they
+ * actually ARE). To prevent a mislabeled profile from scoring a perfect
+ * role match, we only trust a label if the candidate's own skills show at
+ * least minimal overlap with that role's canonical skill set.
+ */
+function roleLabelTrusted(label, candidateSkills) {
+  const required = ROLE_SKILL_MAP[label];
+  if (!required?.length) return true; // no skill list to check against (e.g. unmapped role) — trust it
+  const matched = required.filter((req) =>
+    candidateSkills.some((cand) => cand.includes(req) || req.includes(cand))
+  );
+  return matched.length >= 2; // require at least 2 matching skills to confirm the label
+}
+
+/**
  * roleToSkillScore — kept for internal use by scorePreferredRoles complementarity check.
  * Given a list of roles + a candidate's skills → returns 0–100 (continuous).
  */
@@ -126,11 +144,11 @@ function scorerole(me, other) {
   } else {
     // STEP 1: exact role label match
     if (!noOtherRole) {
-      const roleMatched = otherRole.some(
+      const matchedRole = otherRole.find(
         (r) => r !== "any" && myWanted.includes(r)
       );
-      if (roleMatched) {
-        primary = 100; // perfect role match
+      if (matchedRole && roleLabelTrusted(matchedRole, otherSkills)) {
+        primary = 100; // perfect role match, and skills back it up
       } else {
         // STEP 2: skill-domain fallback — other's skills cover what I want
         primary = skillMatchScore(myWanted, otherSkills);
@@ -148,10 +166,10 @@ function scorerole(me, other) {
     secondary = 55;
   } else {
     if (!noMyRole) {
-      const roleMatched = myRole.some(
+      const matchedRole = myRole.find(
         (r) => r !== "any" && theirWanted.includes(r)
       );
-      if (roleMatched) {
+      if (matchedRole && roleLabelTrusted(matchedRole, mySkills)) {
         secondary = 100;
       } else {
         secondary = skillMatchScore(theirWanted, mySkills);
@@ -281,10 +299,10 @@ function scorePreferredRoles(me, other) {
 
   // STEP 1: exact role label match
   if (!noMyRole) {
-    const roleMatched = myRole.some(
+    const matchedRole = myRole.find(
       (r) => r !== "any" && theirWant.includes(r)
     );
-    if (roleMatched) {
+    if (matchedRole && roleLabelTrusted(matchedRole, mySkills)) {
       return { score: 100, reason: "Your role matches what they need" };
     }
   }
