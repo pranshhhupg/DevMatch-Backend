@@ -386,7 +386,7 @@ const buildSearchQuery = ({
 
     // Looking for search
     orClauses.push({
-      role: { $regex: raw, $options: "i" },
+      lookingFor: { $regex: raw, $options: "i" },
     });
 
     // Learning goals search
@@ -408,7 +408,7 @@ const buildSearchQuery = ({
     // Detected role
     if (detectedRole) {
       orClauses.push({
-        role: {
+        lookingFor: {
           $regex: detectedRole,
           $options: "i",
         },
@@ -446,7 +446,7 @@ const buildSearchQuery = ({
 
     const roleClauses = [
       {
-        role: {
+        lookingFor: {
           $regex: mappedRole,
           $options: "i",
         },

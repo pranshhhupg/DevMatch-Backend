@@ -106,8 +106,8 @@ function skillMatchScore(wantedRoles, candidateSkills) {
  */
 function scorerole(me, other) {
   const myWanted    = normalize(me.preferredRoles    || []);
-  const otherRole   = normalize(other.role     || []);
-  const myRole      = normalize(me.role        || []);
+  const otherRole   = normalize(other.lookingFor     || []);
+  const myRole      = normalize(me.lookingFor        || []);
   const theirWanted = normalize(other.preferredRoles || []);
   const otherSkills = normalize(other.skills         || []);
   const mySkills    = normalize(me.skills            || []);
@@ -268,7 +268,7 @@ function scoreProjects(me, other) {
  * This is the mirror of scorerole — evaluates mutual fit from the other direction.
  */
 function scorePreferredRoles(me, other) {
-  const myRole     = normalize(me.role        || []);
+  const myRole     = normalize(me.lookingFor    || []);
   const mySkills   = normalize(me.skills            || []);
   const theirWant  = normalize(other.preferredRoles || []);
 
@@ -401,7 +401,7 @@ function scorePreferredInterests(me, other) {
 
 const SCORERS = [
   // Group A — profile-to-profile
-  { key: "role",              weight: WEIGHTS.role,              fn: scorerole              },
+  { key: "lookingFor",        weight: WEIGHTS.lookingFor,        fn: scorerole              },
   { key: "skills",                  weight: WEIGHTS.skills,                  fn: scoreSkills                  },
   { key: "goals",                   weight: WEIGHTS.goals,                   fn: scoreGoals                   },
   { key: "timezone",                weight: WEIGHTS.timezone,                fn: scoreTimezone                },

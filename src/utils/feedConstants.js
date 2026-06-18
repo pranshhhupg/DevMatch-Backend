@@ -5,7 +5,7 @@
  */
 
 const WEIGHTS = {
-  role:              20,   // does other's skills match what I want?
+  lookingFor:              20,   // does other's skills match what I want?
   preferredRoles:          15,   // do other's skills match my desired-dev preferences?
   skills:                  10,   // raw skill overlap (Jaccard)
   goals:                   8,   // shared goals
@@ -21,7 +21,7 @@ const WEIGHTS = {
 // 20 + 15 + 18 + 10 + 6 + 6 + 5 + 5 + 5 + 5 + 3 + 2 = 100 ✓
 
 /**
- * Maps each role role to its canonical skill keywords.
+ * Maps each lookingFor role to its canonical skill keywords.
  * Matching is substring-based, so "react" matches "ReactJS", "react native" etc.
  */
 const ROLE_SKILL_MAP = {

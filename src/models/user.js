@@ -76,7 +76,7 @@ const userSchema = new mongoose.Schema({
     },
 
     // ── MY OWN PROFILE FIELDS ─────────────────────────────────────────────────
-    role: {
+    lookingFor: {
         type: [String],
         enum: [
           "frontend dev","backend dev","full stack","ml engineer","ai engineer",

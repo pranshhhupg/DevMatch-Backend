@@ -17,7 +17,7 @@ photoUrl
 about
 hobbies
 skills
-role
+lookingFor
 goals
 availability
 experienceLevel
@@ -292,7 +292,7 @@ userRouter.get("/user/:id", userAuth, async (req, res) => {
 const Opportunity = require("../models/opportunity");
 
 const PUBLIC_PROFILE_FIELDS =
-  "firstName lastName photoUrl about age gender skills role goals " +
+  "firstName lastName photoUrl about age gender skills lookingFor goals " +
   "availability experienceLevel timezone hackathonInterest startupInterest " +
   "learningGoals projectIdeas " +
   "preferredRoles preferredTimezones preferredInterests " +

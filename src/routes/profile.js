@@ -27,7 +27,7 @@ profileRouter.put("/profile/edit", userAuth, async (req, res) => {
     "gender",
     "skills",
     // ── my own profile attributes ──
-    "role",
+    "lookingFor",
     "goals",
     "availability",
     "experienceLevel",

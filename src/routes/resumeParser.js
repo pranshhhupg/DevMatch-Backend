@@ -54,7 +54,7 @@ Return a JSON object matching this exact schema:
   "about": string (max 300 chars — punchy first-person developer bio summarising their background),
   "skills": string[] (max 20 — only real technical skills: languages, frameworks, tools, platforms),
   "experienceLevel": "beginner" | "intermediate" | "advanced",
-  "role": string[] (subset of: "frontend dev","backend dev","full stack","ml engineer","ai engineer","prompt engineer","data scientist","data analyst","designer","product manager","devops","mobile dev","qa engineer","blockchain dev","consultant","any"),
+  "lookingFor": string[] (subset of: "frontend dev","backend dev","full stack","ml engineer","ai engineer","prompt engineer","data scientist","data analyst","designer","product manager","devops","mobile dev","qa engineer","blockchain dev","consultant","any"),
   "goals": string[] (subset of: "build a startup","win hackathons","learn new tech","open source","freelance","get a job"),
   "availability": "weekends" | "evenings" | "full-time" | "flexible",
   "hackathonInterest": boolean,
@@ -68,7 +68,7 @@ Inference rules:
 - experienceLevel: less than 1 yr total → "beginner", 1–3 yrs → "intermediate", 3+ yrs → "advanced"
 - skills: hard/technical skills only — exclude soft skills like "communication" or "teamwork"
 - about: write a concise first-person bio from the resume content, max 300 chars
-- role: infer what kind of collaborator this developer would benefit from given their role/domain
+- lookingFor: infer what kind of collaborator this developer would benefit from given their role/domain
 - goals: infer from their background, projects, and stated interests
 - hackathonInterest: true if any hackathon is mentioned anywhere in the resume
 - startupInterest: true if startup work, founding, or startup interest is mentioned
@@ -128,8 +128,8 @@ resumeRouter.post(
                   ? parsed.skills.filter((s) => typeof s === "string").slice(0, 20) : [],
         experienceLevel: VALID_EXPERIENCE.includes(parsed.experienceLevel)
                            ? parsed.experienceLevel : "intermediate",
-        role: Array.isArray(parsed.role)
-                      ? parsed.role.filter((v) => VALID_LOOKING_FOR.includes(v))
+        lookingFor: Array.isArray(parsed.lookingFor)
+                      ? parsed.lookingFor.filter((v) => VALID_LOOKING_FOR.includes(v))
                       : ["any"],
         goals: Array.isArray(parsed.goals)
                  ? parsed.goals.filter((v) => VALID_GOALS.includes(v)) : [],
@@ -145,7 +145,7 @@ resumeRouter.post(
                     ? parsed.timezone.trim() : "Asia/Kolkata",
       };
 
-      if (sanitized.role.length === 0) sanitized.role = ["any"];
+      if (sanitized.lookingFor.length === 0) sanitized.lookingFor = ["any"];
 
       return res.json({
         message: "Resume parsed successfully",

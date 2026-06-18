@@ -23,7 +23,7 @@ function buildPrompt(action, context, currentBio) {
   const {
     firstName = "", lastName = "",
     skills = [], experienceLevel = "",
-    goals = [], role = [],
+    goals = [], lookingFor = [],
     hackathonInterest = false, startupInterest = false,
     availability = "", learningGoals = [], projectIdeas = [],
   } = context;
@@ -33,7 +33,7 @@ function buildPrompt(action, context, currentBio) {
     experienceLevel && `Experience: ${experienceLevel}`,
     skills.length     && `Skills: ${skills.join(", ")}`,
     goals.length      && `Goals: ${goals.join(", ")}`,
-    role.length && `Looking for: ${role.join(", ")}`,
+    lookingFor.length && `Looking for: ${lookingFor.join(", ")}`,
     availability      && `Availability: ${availability}`,
     hackathonInterest && "Interested in hackathons",
     startupInterest   && "Interested in startups",
