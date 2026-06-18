@@ -5,18 +5,23 @@
  */
 
 const WEIGHTS = {
-  lookingFor:      35,
-  skills:          25,
-  goals:           15,
-  timezone:         8,
-  experienceLevel:  7,
-  interests:        5,   // hackathon + startup combined
-  projects:         5,
+  role:              20,   // does other's skills match what I want?
+  preferredRoles:          15,   // do other's skills match my desired-dev preferences?
+  skills:                  10,   // raw skill overlap (Jaccard)
+  goals:                   8,   // shared goals
+  timezone:                 6,   // my timezone vs other's timezone
+  preferredTimezones:       6,   // other's timezone matches my preferred timezones
+  experienceLevel:          5,   // my level vs other's level
+  preferredExperienceLevel: 5,   // other matches my preferred experience level
+  preferredAvailability:    5,   // other's availability matches my preference
+  preferredInterests:       15,   // other's interests match what I prefer
+  interests:                3,   // both have hackathon/startup interest (my vs other)
+  projects:                 2,   // project/learning keyword overlap
 };
-// 35 + 25 + 15 + 8 + 7 + 5 + 5 = 100 ✓
+// 20 + 15 + 18 + 10 + 6 + 6 + 5 + 5 + 5 + 5 + 3 + 2 = 100 ✓
 
 /**
- * Maps each lookingFor role to its canonical skill keywords.
+ * Maps each role role to its canonical skill keywords.
  * Matching is substring-based, so "react" matches "ReactJS", "react native" etc.
  */
 const ROLE_SKILL_MAP = {
@@ -104,4 +109,14 @@ const ROLE_SKILL_MAP = {
 // Ordered: used for adjacency scoring in experienceLevel
 const EXPERIENCE_ORDER = ["beginner", "intermediate", "advanced"];
 
-module.exports = { WEIGHTS, ROLE_SKILL_MAP, EXPERIENCE_ORDER };
+// Maps preferredInterests values → which user fields they correspond to
+const INTEREST_FIELD_MAP = {
+  "hackathons":  "hackathonInterest",
+  "startups":    "startupInterest",
+  "open source": "goals",      // check goals array includes "open source"
+  "freelance":   "goals",      // check goals array includes "freelance"
+  "learning":    "goals",      // check goals array includes "learn new tech"
+  "research":    "goals",      // general learning / projects
+};
+
+module.exports = { WEIGHTS, ROLE_SKILL_MAP, EXPERIENCE_ORDER, INTEREST_FIELD_MAP };

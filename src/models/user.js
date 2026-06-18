@@ -48,11 +48,6 @@ const userSchema = new mongoose.Schema({
             values : ["male","female","other","Male","Female","Others"],
             message : '{VALUE} is not a valid gender type.'
         }
-        // validate(value){
-        //     if(!["male","female","other","Male","Female","Others"].includes(value)){
-        //         throw new Error("Gender is invalid");
-        //     }
-        // }
     },
     photoUrl : {
         type : String,
@@ -63,7 +58,6 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
-    // Cloudinary public_id for the profile photo (used for deletion on re-upload)
     photoPublicId : {
         type : String,
         default : null,
@@ -79,67 +73,89 @@ const userSchema = new mongoose.Schema({
         validate(value) {
           if (value.length > 20) throw new Error("Maximum 20 skills allowed");
         },
-      },
-  
-      // ── New Matching Fields ───────────────────────────────────
-      lookingFor: {
+    },
+
+    // ── MY OWN PROFILE FIELDS ─────────────────────────────────────────────────
+    role: {
         type: [String],
         enum: [
-          "frontend dev",
-          "backend dev",
-          "full stack",
-          "ml engineer",
-          "ai engineer",
-          "prompt engineer",
-          "data scientist",
-          "data analyst",
-          "designer",
-          "product manager",
-          "devops",
-          "mobile dev",
-          "qa engineer",
-          "blockchain dev",
-          "consultant",
-          "any",
+          "frontend dev","backend dev","full stack","ml engineer","ai engineer",
+          "prompt engineer","data scientist","data analyst","designer",
+          "product manager","devops","mobile dev","qa engineer","blockchain dev",
+          "consultant","any",
         ],
         default: ["any"],
-      },
-      goals: {
+    },
+    goals: {
         type: [String],
         enum: [
-          "build a startup",
-          "win hackathons",
-          "learn new tech",
-          "open source",
-          "freelance",
-          "get a job",
+          "build a startup","win hackathons","learn new tech",
+          "open source","freelance","get a job",
         ],
         default: [],
-      },
-      availability: {
+    },
+    availability: {
         type: String,
-        enum: ["weekends", "evenings", "full-time", "flexible"],
+        enum: ["weekends","evenings","full-time","flexible"],
         default: "flexible",
-      },
-      experienceLevel: {
+    },
+    experienceLevel: {
         type: String,
-        enum: ["beginner", "intermediate", "advanced"],
+        enum: ["beginner","intermediate","advanced"],
         default: "intermediate",
-      },
-      timezone: {
+    },
+    timezone: {
         type: String,
         default: "Asia/Kolkata",
-      },
-      hackathonInterest: { type: Boolean, default: false },
-      startupInterest:   { type: Boolean, default: false },
-      learningGoals: {
+    },
+    hackathonInterest: { type: Boolean, default: false },
+    startupInterest:   { type: Boolean, default: false },
+    learningGoals: {
         type: [String],
         default: [],
-      },
-      projectIdeas: {
+    },
+    projectIdeas: {
         type: [String],
         default: [],
-      },
+    },
+
+    // ── DESIRED DEVELOPER PREFERENCES (what I want in a match) ───────────────
+    // These are separate from the current user's own attributes above.
+
+    // Which roles should my ideal match have?
+    preferredRoles: {
+        type: [String],
+        enum: [
+          "frontend dev","backend dev","full stack","ml engineer","ai engineer",
+          "prompt engineer","data scientist","data analyst","designer",
+          "product manager","devops","mobile dev","qa engineer","blockchain dev",
+          "consultant","any",
+        ],
+        default: ["any"],
+    },
+    // What timezone(s) should my ideal match be in?
+    preferredTimezones: {
+        type: [String],
+        default: [],
+    },
+    // What interests should my ideal match have?
+    preferredInterests: {
+        type: [String],
+        enum: ["open source","hackathons","startups","freelance","learning","research"],
+        default: [],
+    },
+    // What experience level should my ideal match be?
+    preferredExperienceLevel: {
+        type: String,
+        enum: ["beginner","intermediate","advanced","any"],
+        default: "any",
+    },
+    // What availability should my ideal match have?
+    preferredAvailability: {
+        type: String,
+        enum: ["weekends","evenings","full-time","flexible","any"],
+        default: "any",
+    },
 },
 {
     timestamps : true,
@@ -147,21 +163,16 @@ const userSchema = new mongoose.Schema({
 
 userSchema.methods.getJWT = async function() {
     const user = this;
-
     const token = await jwt.sign({userId : user._id}, "devTinder@1210", {
         expiresIn : '1d'
     });
-
     return token;
 }
 
 userSchema.methods.validatePassword = async function(passwordGivenByUser) {
     const user = this;
-
     const isPasswordCorrect = await bcrypt.compare(passwordGivenByUser, user.password);
-    
     return isPasswordCorrect;
 }
-
 
 module.exports = mongoose.model("User",userSchema);

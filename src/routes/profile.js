@@ -15,12 +15,10 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
   }
 });
 
-// ── PATCH /profile/edit ───────────────────────────────────────────────────────
+// ── PUT /profile/edit ─────────────────────────────────────────────────────────
 profileRouter.put("/profile/edit", userAuth, async (req, res) => {
-  // Every field the user is allowed to change.
-  // password, email, _id are intentionally excluded.
   const ALLOWED_UPDATES = [
-    // ── existing fields ──
+    // ── basic fields ──
     "firstName",
     "lastName",
     "photoUrl",
@@ -28,8 +26,8 @@ profileRouter.put("/profile/edit", userAuth, async (req, res) => {
     "age",
     "gender",
     "skills",
-    // ── new matching fields ──
-    "lookingFor",
+    // ── my own profile attributes ──
+    "role",
     "goals",
     "availability",
     "experienceLevel",
@@ -38,6 +36,12 @@ profileRouter.put("/profile/edit", userAuth, async (req, res) => {
     "startupInterest",
     "learningGoals",
     "projectIdeas",
+    // ── desired developer preferences ──
+    "preferredRoles",
+    "preferredTimezones",
+    "preferredInterests",
+    "preferredExperienceLevel",
+    "preferredAvailability",
   ];
 
   try {
@@ -59,6 +63,9 @@ profileRouter.put("/profile/edit", userAuth, async (req, res) => {
     if (req.body.about && req.body.about.length > 300) {
       return res.status(400).json({ message: "About must be ≤ 300 characters" });
     }
+    if (req.body.preferredTimezones && req.body.preferredTimezones.length > 5) {
+      return res.status(400).json({ message: "Maximum 5 preferred timezones allowed" });
+    }
 
     // Apply updates
     const user = req.user;
@@ -74,7 +81,7 @@ profileRouter.put("/profile/edit", userAuth, async (req, res) => {
   }
 });
 
-// ── PATCH /profile/password ───────────────────────────────────────────────────
+// ── PUT /profile/password ─────────────────────────────────────────────────────
 profileRouter.put("/profile/password", userAuth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
