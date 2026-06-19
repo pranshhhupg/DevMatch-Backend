@@ -107,20 +107,21 @@ function skillMatchScore(wantedRoles, candidateSkills) {
 /**
  * scorerole — weight 20
  *
- * Tiered match: role first, skill-domain fallback second.
+ * "Role Fit" — evaluates how well both sides' desires are satisfied.
  *
- * STEP 1 — Exact role match (score 100 → 70)
- *   Does other's declared role (role) appear in what I want (preferredRoles)?
- *   This is the primary signal — a "frontend dev" who wants a "backend dev"
- *   should rank actual backend devs highest.
+ * PRIMARY (my desire → other's role):
+ *   - If my desired role matches other's declared role → 100%
+ *   - If no role match, fall back to other's skill count against my desired role:
+ *       4+ skills → 100,  3 → 80,  2 → 60,  0–1 → 0
  *
- * STEP 2 — Skill-domain fallback (score 0 → 60)
- *   If neither side declared a matching role (or either side is "any"),
- *   fall back to checking whether other's SKILLS cover the domains I want.
- *   This lets skill-rich profiles still surface even without role labels.
+ * SECONDARY (their desire → my role):
+ *   Same logic in reverse.
  *
- * Secondary (35% weight): mutual fit — does MY role match what THEY want?
- *   Same tiered logic applied in reverse.
+ * COMBINED Role Fit score:
+ *   - Both desires satisfied (primary=100 AND secondary=100) → 100
+ *   - Only MY desire satisfied (primary=100, secondary<100)  →  80
+ *   - Only THEIR desire satisfied (secondary=100, primary<100) → 60
+ *   - Neither fully satisfied → weighted blend (65% primary, 35% secondary)
  */
 function scorerole(me, other) {
   const myWanted    = normalize(me.preferredRoles    || []);
@@ -139,54 +140,67 @@ function scorerole(me, other) {
   let primary = 0;
 
   if (noMyPref) {
-    // I have no preference → neutral, give moderate score
-    primary = 55;
-  } else {
-    // STEP 1: exact role label match
-    if (!noOtherRole) {
-      const matchedRole = otherRole.find(
-        (r) => r !== "any" && myWanted.includes(r)
-      );
-      if (matchedRole && roleLabelTrusted(matchedRole, otherSkills)) {
-        primary = 100; // perfect role match, and skills back it up
-      } else {
-        // STEP 2: skill-domain fallback — other's skills cover what I want
-        primary = skillMatchScore(myWanted, otherSkills);
-      }
+    primary = 55; // no preference → neutral
+  } else if (!noOtherRole) {
+    // Check if other's declared role matches what I want
+    const matchedRole = otherRole.find(
+      (r) => r !== "any" && myWanted.includes(r)
+    );
+    if (matchedRole && roleLabelTrusted(matchedRole, otherSkills)) {
+      primary = 100; // desired role matches → 100%
     } else {
-      // Other has no role declared — fall back to skills only
+      // Role doesn't match → fall back to skill-count tiers
       primary = skillMatchScore(myWanted, otherSkills);
     }
+  } else {
+    // Other has no role declared → skill-count fallback only
+    primary = skillMatchScore(myWanted, otherSkills);
   }
 
   // ── Secondary: what they want vs who I AM ──────────────────────────────────
   let secondary = 0;
 
   if (noTheirPref) {
-    secondary = 55;
-  } else {
-    if (!noMyRole) {
-      const matchedRole = myRole.find(
-        (r) => r !== "any" && theirWanted.includes(r)
-      );
-      if (matchedRole && roleLabelTrusted(matchedRole, mySkills)) {
-        secondary = 100;
-      } else {
-        secondary = skillMatchScore(theirWanted, mySkills);
-      }
+    secondary = 55; // no preference → neutral
+  } else if (!noMyRole) {
+    const matchedRole = myRole.find(
+      (r) => r !== "any" && theirWanted.includes(r)
+    );
+    if (matchedRole && roleLabelTrusted(matchedRole, mySkills)) {
+      secondary = 100;
     } else {
       secondary = skillMatchScore(theirWanted, mySkills);
     }
+  } else {
+    secondary = skillMatchScore(theirWanted, mySkills);
   }
 
-  const combined = Math.round(0.65 * primary + 0.35 * secondary);
+  // ── Role Fit combination rules ──────────────────────────────────────────────
+  // Both desires fully satisfied → 100
+  // Only my desire satisfied     →  80
+  // Only their desire satisfied  →  60
+  // Neither fully satisfied      → weighted blend
+  let combined;
+  if (primary === 100 && secondary === 100) {
+    combined = 100;
+  } else if (primary === 100 && secondary < 100) {
+    combined = 80;
+  } else if (secondary === 100 && primary < 100) {
+    combined = 60;
+  } else {
+    combined = Math.round(0.65 * primary + 0.35 * secondary);
+  }
 
-  // Reason reflects whether it was a role match or a skill-based match
+  // Reason reflects the match quality
   const namedWanted = myWanted.filter((r) => r !== "any");
   let reason = null;
-  if (primary === 100 && namedWanted.length)
+  if (primary === 100 && secondary === 100 && namedWanted.length)
+    reason = `Mutual role match: ${namedWanted.join(", ")}`;
+  else if (primary === 100 && namedWanted.length)
     reason = `Role match: ${namedWanted.join(", ")}`;
-  else if (primary >= 30 && namedWanted.length)
+  else if (secondary === 100)
+    reason = "Your role fits what they need";
+  else if (primary >= 60 && namedWanted.length)
     reason = `Skill match for: ${namedWanted.join(", ")}`;
   else if (combined >= 40)
     reason = "Partial compatibility";
@@ -278,39 +292,41 @@ function scoreProjects(me, other) {
 /**
  * scorePreferredRoles — weight 15
  *
- * Complementarity: "Am I a good fit for what the OTHER person needs?"
+ * "Does the OTHER person satisfy MY preferred role?"
+ * Only the current user's (me) preference matters here.
  *
- * STEP 1 — Role label check: does MY role (role) match what THEY want (preferredRoles)?
- * STEP 2 — Skill fallback:   if no role label match, do MY skills cover what they want?
- *
- * This is the mirror of scorerole — evaluates mutual fit from the other direction.
+ * STEP 1 — Role label check: does OTHER's declared role match MY preferredRoles?
+ *   If yes → 100%
+ * STEP 2 — Skill fallback (only when role doesn't match):
+ *   4+ matching skills → 100,  3 → 80,  2 → 60,  0–1 → 0
  */
 function scorePreferredRoles(me, other) {
-  const myRole     = normalize(me.lookingFor    || []);
-  const mySkills   = normalize(me.skills            || []);
-  const theirWant  = normalize(other.preferredRoles || []);
+  const myWanted    = normalize(me.preferredRoles   || []);
+  const otherRole   = normalize(other.lookingFor    || []);
+  const otherSkills = normalize(other.skills        || []);
 
-  // Other has no preference ("any") → neutral
-  if (!theirWant.length || theirWant.every((r) => r === "any")) {
+  // I have no preference → neutral
+  if (!myWanted.length || myWanted.every((r) => r === "any")) {
     return { score: 50, reason: null };
   }
 
-  const noMyRole = !myRole.length || myRole.every((r) => r === "any");
+  const noOtherRole = !otherRole.length || otherRole.every((r) => r === "any");
 
-  // STEP 1: exact role label match
-  if (!noMyRole) {
-    const matchedRole = myRole.find(
-      (r) => r !== "any" && theirWant.includes(r)
+  // STEP 1: other's declared role matches what I want → 100%
+  if (!noOtherRole) {
+    const matchedRole = otherRole.find(
+      (r) => r !== "any" && myWanted.includes(r)
     );
-    if (matchedRole && roleLabelTrusted(matchedRole, mySkills)) {
-      return { score: 100, reason: "Your role matches what they need" };
+    if (matchedRole && roleLabelTrusted(matchedRole, otherSkills)) {
+      return { score: 100, reason: `Their role matches your preference` };
     }
   }
 
-  // STEP 2: skill-domain fallback — 4 matches→100, 3→80, 2→60, else→0
-  const score = skillMatchScore(theirWant, mySkills);
+  // STEP 2: role doesn't match → check other's skills against my wanted roles
+  const score = skillMatchScore(myWanted, otherSkills);
   let reason = null;
-  if (score >= 60) reason = "Your skills cover what they need";
+  if (score === 100) reason = "Their skills strongly match your preference";
+  else if (score >= 60) reason = "Their skills partially match your preference";
   return { score, reason };
 }
 
