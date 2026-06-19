@@ -97,6 +97,12 @@
 
 -Signup on AWS
 -Launch instance
+- To connect to EC2 instance:
+
+    cd ~/downloads
+    chmod 400 "devTinder-secret-key.pem"
+    ssh -i "devTinder-secret-key.pem" ubuntu@ec2-13-127-24-219.ap-south-1.compute.amazonaws.com
+
 -Connect to instance using git bash and AWS keys
 -Install exact same node version when connected to ec2 instance.
 -Do git clone
@@ -153,6 +159,13 @@
 
     after doing it restart nginx : sudo systemctl restart nginx
     -Modify the base url to /api in frontend
+
+    ls: means view all the files.
+    cd: to go to that file.
+    nano .env : to create file .env
+    cat src/app.js : to view contents of app.js
+    pm2 logs : all the pm2 logs
+    pm2 restart all/log name : restart process
 
 - WE NEED TO ONLY CONFIGURE NGINX ONCE
 

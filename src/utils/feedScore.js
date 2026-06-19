@@ -23,6 +23,29 @@ function jaccard(setA, setB) {
 }
 
 /**
+ * skillsMatch — safe skill comparison that prevents short tokens (e.g. "r", "go")
+ * from falsely matching unrelated longer strings via substring.
+ *
+ * Rules (both inputs already lowercased):
+ *  1. Exact match → always true.
+ *  2. Either token is ≤ 2 chars → only exact match (no substring).
+ *  3. Both tokens are ≥ 3 chars → allow substring only when the shorter
+ *     token makes up at least 50% of the longer one's length, preventing
+ *     "r" hitting "scrum", "jira", "trello", etc.
+ */
+function skillsMatch(a, b) {
+  if (a === b) return true;
+  if (a.length <= 2 || b.length <= 2) return false; // short tokens: exact only
+  const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+  if (!longer.includes(shorter)) return false;
+  // Require shorter token to be at least 50% the length of the longer one
+  // e.g. "react" (5) inside "reactjs" (7): 5/7=71% ✓
+  //      "sql" (3) inside "nosql" (5): 3/5=60% ✓
+  //      "r" would be caught by the ≤2 guard above already
+  return shorter.length / longer.length >= 0.5;
+}
+
+/**
  * roleLabelTrusted — guards against mislabeled `lookingFor` values.
  *
  * A user's `lookingFor` is self-reported and can be filled in incorrectly
@@ -35,7 +58,7 @@ function roleLabelTrusted(label, candidateSkills) {
   const required = ROLE_SKILL_MAP[label];
   if (!required?.length) return true; // no skill list to check against (e.g. unmapped role) — trust it
   const matched = required.filter((req) =>
-    candidateSkills.some((cand) => cand.includes(req) || req.includes(cand))
+    candidateSkills.some((cand) => skillsMatch(cand, req))
   );
   return matched.length >= 2; // require at least 2 matching skills to confirm the label
 }
@@ -53,7 +76,7 @@ function roleToSkillScore(roles, candidateSkills) {
     if (!required?.length) continue;
     validRoles++;
     const matched = required.filter((req) =>
-      candidateSkills.some((cand) => cand.includes(req) || req.includes(cand))
+      candidateSkills.some((cand) => skillsMatch(cand, req))
     );
     totalRoleScore += matched.length >= 3 ? 100 : (matched.length / 3) * 100;
   }
@@ -88,10 +111,10 @@ function skillMatchScore(wantedRoles, candidateSkills) {
 
   if (!canonicalSet.size) return 0;
 
-  // Count how many candidate skills hit the canonical set (substring match)
+  // Count how many canonical skills the candidate's skill set covers (safe word match)
   let matchCount = 0;
   for (const canon of canonicalSet) {
-    if (normalSkills.some((s) => s.includes(canon) || canon.includes(s))) {
+    if (normalSkills.some((s) => skillsMatch(s, canon))) {
       matchCount++;
     }
   }
