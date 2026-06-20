@@ -184,20 +184,6 @@ Through this project I gained hands-on experience in:
 
 ---
 
-## 📷 Screenshots
-
-Add screenshots of:
-
-* Home Page
-* Smart Feed
-* Developer Search
-* Communities
-* CollabHub
-* Messaging System
-* Profile Page
-
----
-
 ## ⚙️ Installation
 
 ### Clone Repository
