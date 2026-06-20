@@ -31,7 +31,7 @@ const initializeSocket = (server) => {
 
     socket.on('joinChat', ({ firstName, userId, targetUserId }) => {
       const roomId = [userId, targetUserId].sort().join('_');
-      console.log(firstName + ' joined private room ' + roomId);
+      // console.log(firstName + ' joined private room ' + roomId);
       socket.join(roomId);
     });
 
@@ -82,7 +82,7 @@ const initializeSocket = (server) => {
             createdAt: savedMsg.createdAt,
           });
         } catch (err) {
-          console.log('1-1 chat error:', err.message);
+          // console.log('1-1 chat error:', err.message);
         }
       }
     );
@@ -103,9 +103,9 @@ const initializeSocket = (server) => {
         if (!isMember) return;
 
         socket.join('community_' + communityId);
-        console.log('User ' + userId + ' joined community room ' + communityId);
+        // console.log('User ' + userId + ' joined community room ' + communityId);
       } catch (err) {
-        console.log('joinCommunityRoom error:', err.message);
+        // console.log('joinCommunityRoom error:', err.message);
       }
     });
 
@@ -153,7 +153,7 @@ const initializeSocket = (server) => {
             createdAt: savedMsg.createdAt,
           });
         } catch (err) {
-          console.log('sendCommunityMessage error:', err.message);
+          // console.log('sendCommunityMessage error:', err.message);
         }
       }
     );
