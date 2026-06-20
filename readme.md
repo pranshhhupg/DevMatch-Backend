@@ -243,7 +243,7 @@ CLIENT_URL=http://localhost:5173
 ## 👨‍💻 Author
 
 **Pranshu Gupta**
-B.Tech CSE, MAIT
+B.Tech CSE, MAIT. 
 Full Stack MERN Developer | AWS | Generative AI | LLM Integration
 
 **Designed, Developed & Deployed by Pranshu Gupta**
